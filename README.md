@@ -10,3 +10,9 @@ Expose an API that can:
 * The tasks must be persisted into some external data store (your choice).
 * Process each task only once and only at/after their specified execution time.
 * Support running multiple instances of your code in parallel.
+
+## howto dev
+
+```console
+cargo install just
+```

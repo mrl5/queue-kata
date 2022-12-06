@@ -1,0 +1,10 @@
+[workspace]
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.0.0"
+edition = "2021"
+
+[toolchain]
+channel = "1.65"
+components = [ "rustfmt", "clippy" ]
