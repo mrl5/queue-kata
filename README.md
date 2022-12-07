@@ -15,4 +15,17 @@ Expose an API that can:
 
 ```console
 cargo install just
+just dev-tools
+```
+
+Local
+```console
+cargo run
+just test-api
+```
+
+Docker
+```console
+just build run
+just test-api
 ```
