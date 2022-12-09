@@ -1,7 +1,7 @@
 use std::net::SocketAddr;
 
-use http_server::server::run_server;
 use http_server::router::get_router;
+use http_server::server::run_server;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
@@ -16,6 +16,7 @@ async fn main() -> anyhow::Result<()> {
 
     tracing::debug!("tracing initiated");
     let port = std::env::var("API_PORT").unwrap_or_else(|_| DEFAULT_PORT.to_owned());
+
     let server_f = async {
         let address = SocketAddr::from(([0, 0, 0, 0], port.parse()?));
         let router = get_router();

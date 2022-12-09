@@ -10,11 +10,11 @@ http-server = { path = "./crates/http-server" }
 
 anyhow = "^1"
 axum = { version = "^0", features = ["headers"] }
+futures = "^0"
 hyper = { version = "^0", features = ["full"] }
-serde = { version = "^1",  features = ["derive"] }
 tokio = { version = "^1", features = ["full", "tracing"] }
 tower = "^0"
-tower-http = { version = "^0", features = ["trace"] }
-tracing-subscriber = { version = "^0", features = ["env-filter"] }
+tower-http = { version = "^0", features = ["trace", "set-header", "request-id"] }
 tracing = "^0"
-futures = "^0"
+tracing-subscriber = { version = "^0", features = ["env-filter"] }
+serde = { version = "^1",  features = ["derive"] }
