@@ -1,11 +1,22 @@
+DOCKER_COMPOSE := "docker-compose"
+
+set dotenv-load
+set export
+
 build:
-    docker build -t scheduler-api .
+    ${DOCKER_COMPOSE} build
 
 run:
-    docker run --rm -p 8000:8000 mrl5-scheduler-api:latest
+    ${DOCKER_COMPOSE} up
+
+db-only:
+    ${DOCKER_COMPOSE} up db
 
 dev-tools:
-    cargo install hurl
+    cargo install hurl sqlx-cli
+
+local-api:
+    cargo run
 
 test-api:
     hurl --test ./tests/*.hurl

@@ -13,19 +13,31 @@ Expose an API that can:
 
 ## howto dev
 
+install dev tools
+
 ```console
 cargo install just
 just dev-tools
 ```
 
-Local
+### locally
+
 ```console
-cargo run
+just db-only
+just local-api
 just test-api
 ```
 
-Docker
+### via docker
+
 ```console
 just build run
 just test-api
+```
+
+### database migrations
+
+for new migration definition
+```console
+sqlx migrate add <migration name w/o timestamp>
 ```
