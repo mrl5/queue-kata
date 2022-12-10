@@ -4,6 +4,7 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
+common.workspace = true
 svix-ksuid = { git = "https://github.com/svix/rust-ksuid", rev = "16468002c4da26932ca1004fcae190f543565b78", features = ["serde"] }
 
 anyhow.workspace = true

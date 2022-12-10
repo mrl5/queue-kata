@@ -1,0 +1,73 @@
+{
+  "db": "PostgreSQL",
+  "359e4536c00d579faa99af14674b88b6f4264f4f06d2df440704772691d81279": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "typ: model::TaskType",
+          "ordinal": 1,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Enum": [
+                  "type_a",
+                  "type_b",
+                  "type_c"
+                ]
+              },
+              "name": "task_type"
+            }
+          }
+        },
+        {
+          "name": "state: model::TaskState",
+          "ordinal": 2,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Enum": [
+                  "pending",
+                  "runningfinished",
+                  "deleted"
+                ]
+              },
+              "name": "task_state"
+            }
+          }
+        },
+        {
+          "name": "created_at",
+          "ordinal": 3,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "deleted_at",
+          "ordinal": 4,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "not_before",
+          "ordinal": 5,
+          "type_info": "Timestamptz"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        true,
+        true
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "\n        SELECT\n            id,\n            typ as \"typ: model::TaskType\",\n            state as \"state: model::TaskState\",\n            created_at,\n            deleted_at,\n            not_before\n        FROM task\n        "
+  }
+}

@@ -15,6 +15,10 @@ db-only:
 dev-tools:
     cargo install hurl sqlx-cli
 
+db-migrate:
+    sqlx migrate run
+    cargo sqlx prepare --merged
+
 local-api:
     cargo run
 

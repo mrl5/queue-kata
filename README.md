@@ -37,6 +37,11 @@ just test-api
 
 ### database migrations
 
+run migrations on db
+```console
+just db-migrate
+```
+
 for new migration definition
 ```console
 sqlx migrate add <migration name w/o timestamp>

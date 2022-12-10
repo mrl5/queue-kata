@@ -1,7 +1,8 @@
-use std::net::SocketAddr;
-
+use common::db;
 use http_server::router::get_router;
 use http_server::server::run_server;
+use scheduler::router::get_task_router;
+use std::net::SocketAddr;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
@@ -17,10 +18,13 @@ async fn main() -> anyhow::Result<()> {
     tracing::debug!("tracing initiated");
     let port = std::env::var("API_PORT").unwrap_or_else(|_| DEFAULT_PORT.to_owned());
 
+    let db = db::connect().await?;
+    db::migrate(&db).await?;
+
     let server_f = async {
         let address = SocketAddr::from(([0, 0, 0, 0], port.parse()?));
-        let router = get_router();
-        run_server(address, router).await?;
+        let router = get_router().nest("/task", get_task_router());
+        run_server(address, router, db.clone()).await?;
         Ok(()) as anyhow::Result<()>
     };
     futures::try_join!(server_f)?;
