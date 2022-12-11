@@ -1,10 +1,5 @@
-use axum::{
-    body::{self, BoxBody},
-    http::StatusCode,
-    response::IntoResponse,
-    response::Response,
-    Json,
-};
+use axum::{http::StatusCode, response::IntoResponse, response::Response, Json};
+use serde::Serialize;
 use sqlx::migrate::MigrateError;
 use thiserror::Error;
 
@@ -26,6 +21,11 @@ pub enum Error {
     Anyhow(#[from] anyhow::Error),
 }
 
+#[derive(Serialize)]
+pub struct JsonError {
+    message: String,
+}
+
 impl Error {
     /// https://docs.rs/anyhow/1/anyhow/struct.Error.html#display-representations
     pub fn alt(&self) -> String {
@@ -38,18 +38,15 @@ pub fn to_anyhow<T: 'static + std::error::Error + Send + Sync>(e: T) -> anyhow::
 }
 
 impl IntoResponse for Error {
-    fn into_response(self) -> Response<BoxBody> {
-        let e = &self;
-        let body = body::boxed(body::Full::from(e.to_string()));
+    fn into_response(self) -> Response {
+        let e = JsonError {
+            message: self.to_string(),
+        };
         let status = match self {
             Self::SqlErr(_) | Self::BadRequest(_) => StatusCode::BAD_REQUEST,
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         };
-        tracing::error!(error = e.to_string());
-        Response::builder()
-            .header("Content-Type", "text/plain")
-            .status(status)
-            .body(body)
-            .unwrap()
+        tracing::error!(error = &self.to_string());
+        (status, Json(e)).into_response()
     }
 }

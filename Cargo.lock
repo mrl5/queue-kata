@@ -194,6 +194,8 @@ version = "0.0.0"
 dependencies = [
  "anyhow",
  "axum",
+ "serde",
+ "serde_json",
  "sqlx",
  "thiserror",
  "tracing",
