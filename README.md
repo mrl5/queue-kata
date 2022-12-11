@@ -24,6 +24,7 @@ just dev-tools
 
 ```console
 just db-only
+just test-unit
 just local-api
 just test-api
 ```

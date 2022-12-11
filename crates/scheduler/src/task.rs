@@ -6,10 +6,18 @@ use common::{
     utils::{paginate, Pagination},
 };
 use serde::{Deserialize, Serialize};
+use sqlx::{Postgres, QueryBuilder};
+
 use ulid::Ulid;
 use uuid::Uuid;
 
 pub mod model;
+
+#[derive(sqlx::Type, Deserialize)]
+pub struct TaskFilter {
+    pub typ: Option<model::TaskType>,
+    pub state: Option<model::TaskState>,
+}
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ListTasksResp {
@@ -21,30 +29,33 @@ pub struct ListTasksResp {
 pub async fn list_tasks(
     Extension(db): Extension<DB>,
     Query(pagination): Query<Pagination>,
+    Query(task_filter): Query<TaskFilter>,
 ) -> JsonResult<ListTasksResp> {
-    // todo: filtering by state
-    // todo: filtering by type
     let (per_page, offset, page) = paginate(pagination);
-    let rows = sqlx::query_as!(
-        model::Task,
+    let mut query: QueryBuilder<Postgres> = QueryBuilder::new(
         r#"
         SELECT
             id,
-            typ as "typ: model::TaskType",
-            state as "state: model::TaskState",
+            typ,
+            state,
             created_at,
             deleted_at,
             not_before
         FROM task
-        ORDER BY id desc
-        LIMIT $1
-        OFFSET $2
         "#,
-        per_page as i64, // https://docs.rs/sqlx/latest/sqlx/postgres/types/#types
-        offset as i64,
-    )
-    .fetch_all(&db)
-    .await?;
+    );
+    query = task_filter.append_query_with_fragment(query);
+    query
+        .push(" ORDER BY id desc")
+        .push(" LIMIT ")
+        .push_bind(per_page as i64)
+        .push(" OFFSET ")
+        .push_bind(offset as i64);
+    let rows = query
+        .build_query_as::<model::Task>()
+        //let rows = sqlx::query_as::<_, model::Task>(query.sql())
+        .fetch_all(&db)
+        .await?;
 
     let resp = ListTasksResp {
         tasks: rows,
@@ -100,4 +111,84 @@ pub async fn create_task(
         task_state: task.state,
     };
     Ok((StatusCode::ACCEPTED, Json(resp)))
+}
+
+impl TaskFilter {
+    pub fn append_query_with_fragment(
+        self,
+        mut query: QueryBuilder<Postgres>,
+    ) -> QueryBuilder<Postgres> {
+        if self.typ.is_none() && self.state.is_none() {
+            return query;
+        } else if self.typ.is_none() && self.state.is_some() {
+            query
+                .push(" WHERE state = ")
+                .push_bind(self.state)
+                .push("::task_state");
+        } else if self.typ.is_some() && self.state.is_none() {
+            query
+                .push(" WHERE typ = ")
+                .push_bind(self.typ)
+                .push("::task_type");
+        } else if self.typ.is_some() && self.state.is_some() {
+            query
+                .push(" WHERE typ = ")
+                .push_bind(self.typ)
+                .push("::task_type")
+                .push(" AND state = ")
+                .push_bind(self.state)
+                .push("::task_state");
+        }
+
+        query
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_should_serialize_into_where_sql_fragment() {
+        let test_sql = "SELECT id FROM task";
+        let test_cases = vec![
+            (
+                TaskFilter {
+                    typ: None,
+                    state: None,
+                },
+                QueryBuilder::new(test_sql) as QueryBuilder<Postgres>,
+                "SELECT id FROM task",
+            ),
+            (
+                TaskFilter {
+                    typ: Some(model::TaskType::TypeA),
+                    state: None,
+                },
+                QueryBuilder::new(test_sql) as QueryBuilder<Postgres>,
+                "SELECT id FROM task WHERE typ = $1::task_type",
+            ),
+            (
+                TaskFilter {
+                    typ: None,
+                    state: Some(model::TaskState::Pending),
+                },
+                QueryBuilder::new(test_sql) as QueryBuilder<Postgres>,
+                "SELECT id FROM task WHERE state = $1::task_state",
+            ),
+            (
+                TaskFilter {
+                    typ: Some(model::TaskType::TypeA),
+                    state: Some(model::TaskState::Pending),
+                },
+                QueryBuilder::new(test_sql) as QueryBuilder<Postgres>,
+                "SELECT id FROM task WHERE typ = $1::task_type AND state = $2::task_state",
+            ),
+        ];
+
+        for (input, query, expected) in test_cases {
+            let result = input.append_query_with_fragment(query);
+            assert_eq!(result.sql(), expected);
+        }
+    }
 }

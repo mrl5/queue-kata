@@ -20,10 +20,10 @@ pub enum TaskState {
     Pending,
     Running,
     Finished,
-    Failed,
+    Deleted,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(sqlx::FromRow, Serialize, Deserialize, Debug)]
 pub struct Task {
     pub id: Uuid,
     pub typ: TaskType,

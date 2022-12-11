@@ -1,6 +1,6 @@
 {
   "db": "PostgreSQL",
-  "359e4536c00d579faa99af14674b88b6f4264f4f06d2df440704772691d81279": {
+  "0f647d75a033ac6e8c7efcd46ee6a28289bef9738eb9fd8f3329e6e6b2466c0d": {
     "describe": {
       "columns": [
         {
@@ -9,9 +9,31 @@
           "type_info": "Uuid"
         },
         {
-          "name": "typ: model::TaskType",
+          "name": "state: model::TaskState",
           "ordinal": 1,
           "type_info": {
+            "Custom": {
+              "kind": {
+                "Enum": [
+                  "pending",
+                  "running",
+                  "finished",
+                  "deleted"
+                ]
+              },
+              "name": "task_state"
+            }
+          }
+        }
+      ],
+      "nullable": [
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          {
             "Custom": {
               "kind": {
                 "Enum": [
@@ -22,52 +44,11 @@
               },
               "name": "task_type"
             }
-          }
-        },
-        {
-          "name": "state: model::TaskState",
-          "ordinal": 2,
-          "type_info": {
-            "Custom": {
-              "kind": {
-                "Enum": [
-                  "pending",
-                  "runningfinished",
-                  "deleted"
-                ]
-              },
-              "name": "task_state"
-            }
-          }
-        },
-        {
-          "name": "created_at",
-          "ordinal": 3,
-          "type_info": "Timestamptz"
-        },
-        {
-          "name": "deleted_at",
-          "ordinal": 4,
-          "type_info": "Timestamptz"
-        },
-        {
-          "name": "not_before",
-          "ordinal": 5,
-          "type_info": "Timestamptz"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        true,
-        true
-      ],
-      "parameters": {
-        "Left": []
+          },
+          "Timestamptz"
+        ]
       }
     },
-    "query": "\n        SELECT\n            id,\n            typ as \"typ: model::TaskType\",\n            state as \"state: model::TaskState\",\n            created_at,\n            deleted_at,\n            not_before\n        FROM task\n        "
+    "query": "\n        INSERT INTO task (\n            id,\n            typ,\n            not_before\n        )\n        VALUES (\n            $1,\n            $2,\n            $3\n        )\n        RETURNING\n            id,\n            state as \"state: model::TaskState\"\n        "
   }
 }

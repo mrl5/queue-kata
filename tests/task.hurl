@@ -1,4 +1,5 @@
-# list tasks
+# /task/list
+## list tasks
 GET http://0.0.0.0:8000/task/list
 
 HTTP/* 200
@@ -8,7 +9,7 @@ jsonpath "$.tasks" isCollection
 jsonpath "$.page" == 1
 jsonpath "$.per_page" isInteger
 
-# paginate tasks
+## paginate tasks
 GET http://0.0.0.0:8000/task/list?page=2&per_page=3
 
 HTTP/* 200
@@ -18,7 +19,42 @@ jsonpath "$.tasks" isCollection
 jsonpath "$.page" == 2
 jsonpath "$.per_page" == 3
 
-# create task
+## filter tasks
+GET http://0.0.0.0:8000/task/list?state=pending
+
+HTTP/* 200
+
+GET http://0.0.0.0:8000/task/list?state=running
+
+HTTP/* 200
+
+GET http://0.0.0.0:8000/task/list?state=finished
+
+HTTP/* 200
+
+GET http://0.0.0.0:8000/task/list?state=deleted
+
+HTTP/* 200
+
+GET http://0.0.0.0:8000/task/list?typ=type_a
+
+HTTP/* 200
+
+GET http://0.0.0.0:8000/task/list?typ=type_b
+
+HTTP/* 200
+
+GET http://0.0.0.0:8000/task/list?typ=type_c
+
+HTTP/* 200
+
+GET http://0.0.0.0:8000/task/list?typ=type_c&state=deleted
+
+HTTP/* 200
+
+
+# /task/create
+## create task
 POST http://0.0.0.0:8000/task/create
 {
   "task_type": "type_b"
@@ -29,10 +65,10 @@ HTTP/* 202
 [Asserts]
 jsonpath "$.task_id" exists
 
-# create postponed task
+## create postponed task
 POST http://0.0.0.0:8000/task/create
 {
-  "task_type": "type_b",
+  "task_type": "type_a",
   "not_before": "2022-12-11T16:39:04+01:00"
 }
 
