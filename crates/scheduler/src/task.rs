@@ -1,8 +1,9 @@
-use axum::{http::StatusCode, Extension, Json};
+use axum::{extract::Query, http::StatusCode, Extension, Json};
 use chrono::{DateTime, Utc};
 use common::{
     db::DB,
     error::{Error, JsonResult},
+    utils::{paginate, Pagination},
 };
 use serde::{Deserialize, Serialize};
 use ulid::Ulid;
@@ -13,12 +14,17 @@ pub mod model;
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ListTasksResp {
     pub tasks: Vec<model::Task>,
+    pub page: usize,
+    pub per_page: usize,
 }
 
-pub async fn list_tasks(Extension(db): Extension<DB>) -> JsonResult<ListTasksResp> {
-    // todo: pagination
+pub async fn list_tasks(
+    Extension(db): Extension<DB>,
+    Query(pagination): Query<Pagination>,
+) -> JsonResult<ListTasksResp> {
     // todo: filtering by state
     // todo: filtering by type
+    let (per_page, offset, page) = paginate(pagination);
     let rows = sqlx::query_as!(
         model::Task,
         r#"
@@ -31,12 +37,20 @@ pub async fn list_tasks(Extension(db): Extension<DB>) -> JsonResult<ListTasksRes
             not_before
         FROM task
         ORDER BY id desc
+        LIMIT $1
+        OFFSET $2
         "#,
+        per_page as i64, // https://docs.rs/sqlx/latest/sqlx/postgres/types/#types
+        offset as i64,
     )
     .fetch_all(&db)
     .await?;
 
-    let resp = ListTasksResp { tasks: rows };
+    let resp = ListTasksResp {
+        tasks: rows,
+        page,
+        per_page,
+    };
     Ok(Json(resp))
 }
 

@@ -5,6 +5,18 @@ HTTP/* 200
 
 [Asserts]
 jsonpath "$.tasks" isCollection
+jsonpath "$.page" == 1
+jsonpath "$.per_page" isInteger
+
+# paginate tasks
+GET http://0.0.0.0:8000/task/list?page=2&per_page=3
+
+HTTP/* 200
+
+[Asserts]
+jsonpath "$.tasks" isCollection
+jsonpath "$.page" == 2
+jsonpath "$.per_page" == 3
 
 # create task
 POST http://0.0.0.0:8000/task/create
