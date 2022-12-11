@@ -8,6 +8,6 @@ COPY ./crates /app/crates
 RUN cargo build --release
 
 FROM gcr.io/distroless/cc
-COPY --from=build-env /app/target/release/app /
+COPY --from=build-env /app/target/release/scheduler-api /app
 EXPOSE 8000
 CMD ["./app"]
