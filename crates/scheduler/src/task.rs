@@ -1,15 +1,20 @@
-use axum::{Extension, Json};
-use common::{db::DB, error::JsonResult};
+use axum::{http::StatusCode, Extension, Json};
+use chrono::{DateTime, Utc};
+use common::{
+    db::DB,
+    error::{Error, JsonResult},
+};
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 pub mod model;
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct ListTasks {
+pub struct ListTasksResp {
     pub tasks: Vec<model::Task>,
 }
 
-pub async fn list_tasks(Extension(db): Extension<DB>) -> JsonResult<ListTasks> {
+pub async fn list_tasks(Extension(db): Extension<DB>) -> JsonResult<ListTasksResp> {
     // todo: pagination
     // todo: filtering by state
     // todo: filtering by type
@@ -29,6 +34,42 @@ pub async fn list_tasks(Extension(db): Extension<DB>) -> JsonResult<ListTasks> {
     .fetch_all(&db)
     .await?;
 
-    let resp = ListTasks { tasks: rows };
+    let resp = ListTasksResp { tasks: rows };
     Ok(Json(resp))
+}
+
+#[derive(Deserialize)]
+pub struct CreateTaskReq {
+    pub task_type: model::TaskType,
+    pub not_before: Option<DateTime<Utc>>,
+}
+
+#[derive(Serialize)]
+pub struct CreateTaskResp {
+    task_id: Uuid,
+    task_state: model::TaskState,
+}
+
+pub async fn create_task(
+    Extension(db): Extension<DB>,
+    Json(body): Json<CreateTaskReq>,
+) -> Result<(StatusCode, Json<CreateTaskResp>), Error> {
+    let task = sqlx::query_as!(
+        model::CreatedTask,
+        r#"
+        INSERT INTO task (typ, not_before)
+        VALUES ($1, $2)
+        RETURNING id, state as "state: model::TaskState"
+        "#,
+        body.task_type as model::TaskType,
+        body.not_before
+    )
+    .fetch_one(&db)
+    .await?;
+
+    let resp = CreateTaskResp {
+        task_id: task.id,
+        task_state: task.state,
+    };
+    Ok((StatusCode::ACCEPTED, Json(resp)))
 }

@@ -33,6 +33,12 @@ pub struct Task {
     pub not_before: Option<DateTime<Utc>>,
 }
 
+#[derive(Serialize)]
+pub struct CreatedTask {
+    pub id: Uuid,
+    pub state: TaskState,
+}
+
 impl fmt::Display for Task {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
