@@ -5,6 +5,7 @@ use common::{
     error::{Error, JsonResult},
 };
 use serde::{Deserialize, Serialize};
+use ulid::Ulid;
 use uuid::Uuid;
 
 pub mod model;
@@ -29,7 +30,8 @@ pub async fn list_tasks(Extension(db): Extension<DB>) -> JsonResult<ListTasksRes
             deleted_at,
             not_before
         FROM task
-        "#
+        ORDER BY id desc
+        "#,
     )
     .fetch_all(&db)
     .await?;
@@ -54,13 +56,25 @@ pub async fn create_task(
     Extension(db): Extension<DB>,
     Json(body): Json<CreateTaskReq>,
 ) -> Result<(StatusCode, Json<CreateTaskResp>), Error> {
+    let id: Uuid = Ulid::new().into();
     let task = sqlx::query_as!(
         model::CreatedTask,
         r#"
-        INSERT INTO task (typ, not_before)
-        VALUES ($1, $2)
-        RETURNING id, state as "state: model::TaskState"
+        INSERT INTO task (
+            id,
+            typ,
+            not_before
+        )
+        VALUES (
+            $1,
+            $2,
+            $3
+        )
+        RETURNING
+            id,
+            state as "state: model::TaskState"
         "#,
+        id,
         body.task_type as model::TaskType,
         body.not_before
     )

@@ -1,7 +1,7 @@
 use hyper::{Request, Response};
-use svix_ksuid::{KsuidLike, KsuidMs};
 use tower_http::trace::{MakeSpan, OnRequest, OnResponse};
 use tracing::Span;
+use ulid::Ulid;
 
 pub const REQUEST_ID_HEADER: &str = "x-request-id";
 
@@ -10,7 +10,7 @@ pub struct MyMakeSpan {}
 
 impl<B> MakeSpan<B> for MyMakeSpan {
     fn make_span(&mut self, request: &hyper::Request<B>) -> Span {
-        let internal_request_id = KsuidMs::new(None, None).to_string();
+        let internal_request_id = Ulid::new().to_string();
         tracing::info_span!(
             "request",
             method = %request.method(),
