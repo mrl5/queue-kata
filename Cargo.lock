@@ -29,25 +29,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "216261ddc8289130e551ddcd5ce8a064710c0d064a4d2895c67151c92b5443f6"
 
 [[package]]
-name = "app"
-version = "0.0.0"
-dependencies = [
- "anyhow",
- "axum",
- "common",
- "futures",
- "http-server",
- "hyper",
- "scheduler",
- "serde",
- "tokio",
- "tower",
- "tower-http",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "async-trait"
 version = "0.1.59"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1176,6 +1157,25 @@ dependencies = [
  "sqlx",
  "thiserror",
  "uuid",
+]
+
+[[package]]
+name = "scheduler-api"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "common",
+ "futures",
+ "http-server",
+ "hyper",
+ "scheduler",
+ "serde",
+ "tokio",
+ "tower",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]

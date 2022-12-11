@@ -18,7 +18,7 @@ async fn main() -> anyhow::Result<()> {
     tracing::debug!("tracing initiated");
     let port = std::env::var("API_PORT").unwrap_or_else(|_| DEFAULT_PORT.to_owned());
 
-    let db = db::connect().await?;
+    let db = db::connect(Some(env!("CARGO_PKG_NAME"))).await?;
     db::migrate(&db).await?;
 
     let server_f = async {
