@@ -2,20 +2,21 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::to_string;
 use std::fmt;
+use strum::Display;
 use uuid::Uuid;
 
-#[derive(sqlx::Type, Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Display)]
+#[strum(serialize_all = "snake_case")]
 #[serde(rename_all = "snake_case")]
-#[sqlx(type_name = "task_type", rename_all = "snake_case")]
 pub enum TaskType {
     TypeA,
     TypeB,
     TypeC,
 }
 
-#[derive(sqlx::Type, Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Display)]
+#[strum(serialize_all = "snake_case")]
 #[serde(rename_all = "snake_case")]
-#[sqlx(type_name = "task_state", rename_all = "snake_case")]
 pub enum TaskState {
     Pending,
     Running,
@@ -26,8 +27,8 @@ pub enum TaskState {
 #[derive(sqlx::FromRow, Serialize, Deserialize, Debug)]
 pub struct Task {
     pub id: Uuid,
-    pub typ: TaskType,
-    pub state: TaskState,
+    pub typ: String,
+    pub state: String,
     pub created_at: DateTime<Utc>,
     pub deleted_at: Option<DateTime<Utc>>,
     pub not_before: Option<DateTime<Utc>>,
@@ -36,14 +37,14 @@ pub struct Task {
 #[derive(sqlx::FromRow, Serialize, Deserialize, Debug)]
 pub struct TaskSummary {
     pub id: Uuid,
-    pub typ: TaskType,
-    pub state: TaskState,
+    pub typ: String,
+    pub state: String,
 }
 
 #[derive(Serialize)]
 pub struct TaskSnapshot {
     pub id: Uuid,
-    pub state: TaskState,
+    pub state: String,
 }
 
 impl fmt::Display for Task {

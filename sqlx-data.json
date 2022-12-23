@@ -1,6 +1,6 @@
 {
   "db": "PostgreSQL",
-  "0f647d75a033ac6e8c7efcd46ee6a28289bef9738eb9fd8f3329e6e6b2466c0d": {
+  "95f5e9eafd795f54079f700fdba49d8b7c4a792d6d3ada532855ebd3aab986be": {
     "describe": {
       "columns": [
         {
@@ -9,21 +9,59 @@
           "type_info": "Uuid"
         },
         {
-          "name": "state: model::TaskState",
+          "name": "typ",
           "ordinal": 1,
-          "type_info": {
-            "Custom": {
-              "kind": {
-                "Enum": [
-                  "pending",
-                  "running",
-                  "finished",
-                  "deleted"
-                ]
-              },
-              "name": "task_state"
-            }
-          }
+          "type_info": "Text"
+        },
+        {
+          "name": "state",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 3,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "deleted_at",
+          "ordinal": 4,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "not_before",
+          "ordinal": 5,
+          "type_info": "Timestamptz"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        true,
+        true
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "\n        SELECT\n            id,\n            typ,\n            state,\n            created_at,\n            deleted_at,\n            not_before\n        FROM task\n        WHERE id = $1::uuid\n        "
+  },
+  "ac52bb32fb831c79656774831be3b39ca73146b48eb7003a2825be0cad7836dc": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "state",
+          "ordinal": 1,
+          "type_info": "Text"
         }
       ],
       "nullable": [
@@ -33,22 +71,37 @@
       "parameters": {
         "Left": [
           "Uuid",
-          {
-            "Custom": {
-              "kind": {
-                "Enum": [
-                  "type_a",
-                  "type_b",
-                  "type_c"
-                ]
-              },
-              "name": "task_type"
-            }
-          },
+          "Text",
           "Timestamptz"
         ]
       }
     },
-    "query": "\n        INSERT INTO task (\n            id,\n            typ,\n            not_before\n        )\n        VALUES (\n            $1,\n            $2,\n            $3\n        )\n        RETURNING\n            id,\n            state as \"state: model::TaskState\"\n        "
+    "query": "\n        INSERT INTO task (\n            id,\n            typ,\n            not_before\n        )\n        VALUES (\n            $1,\n            $2,\n            $3\n        )\n        RETURNING\n            id,\n            state\n        "
+  },
+  "d566e70c9c011779a796c56c6be2785b95b0154642ea5b77a743a7ab17f82fa8": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "state",
+          "ordinal": 1,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "\n        UPDATE task\n        SET deleted_at = now(), state = 'deleted'\n        WHERE id = $1::uuid AND state != 'deleted'\n        RETURNING\n            id,\n            state\n        "
   }
 }

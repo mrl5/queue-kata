@@ -1,5 +1,16 @@
 # /task/create
 ## create task
+
+POST http://0.0.0.0:8000/task/create
+{
+  "task_type": "type_c"
+}
+
+HTTP/* 202
+
+[Asserts]
+jsonpath "$.id" exists
+
 POST http://0.0.0.0:8000/task/create
 {
   "task_type": "type_b"
@@ -27,6 +38,20 @@ jsonpath "$.id" exists
 
 [Captures]
 new_a_task_id: jsonpath "$.id"
+
+
+POST http://0.0.0.0:8000/task/create
+{
+  "task_type": "type_c"
+}
+POST http://0.0.0.0:8000/task/create
+{
+  "task_type": "type_b"
+}
+POST http://0.0.0.0:8000/task/create
+{
+  "task_type": "type_a"
+}
 
 
 # /task/list

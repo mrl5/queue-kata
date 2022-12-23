@@ -25,8 +25,8 @@ pub async fn get_task(
         r#"
         SELECT
             id,
-            typ as "typ: model::TaskType",
-            state as "state: model::TaskState",
+            typ,
+            state,
             created_at,
             deleted_at,
             not_before
@@ -57,7 +57,7 @@ pub async fn delete_task(
         WHERE id = $1::uuid AND state != 'deleted'
         RETURNING
             id,
-            state as "state: model::TaskState"
+            state
         "#,
         id,
     )
@@ -71,7 +71,7 @@ pub async fn delete_task(
     }
 }
 
-#[derive(sqlx::Type, Deserialize)]
+#[derive(Deserialize)]
 pub struct TaskFilter {
     pub typ: Option<model::TaskType>,
     pub state: Option<model::TaskState>,
@@ -148,10 +148,10 @@ pub async fn create_task(
         )
         RETURNING
             id,
-            state as "state: model::TaskState"
+            state
         "#,
         id,
-        body.task_type as model::TaskType,
+        body.task_type.to_string(),
         body.not_before
     )
     .fetch_one(&db)
@@ -172,21 +172,17 @@ impl TaskFilter {
         } else if self.typ.is_none() && self.state.is_some() {
             query
                 .push(" WHERE state = ")
-                .push_bind(self.state)
-                .push("::task_state");
+                .push_bind(self.state.unwrap().to_string());
         } else if self.typ.is_some() && self.state.is_none() {
             query
                 .push(" WHERE typ = ")
-                .push_bind(self.typ)
-                .push("::task_type");
+                .push_bind(self.typ.unwrap().to_string());
         } else if self.typ.is_some() && self.state.is_some() {
             query
                 .push(" WHERE typ = ")
-                .push_bind(self.typ)
-                .push("::task_type")
+                .push_bind(self.typ.unwrap().to_string())
                 .push(" AND state = ")
-                .push_bind(self.state)
-                .push("::task_state");
+                .push_bind(self.state.unwrap().to_string());
         }
 
         query
@@ -215,7 +211,7 @@ mod tests {
                     state: None,
                 },
                 QueryBuilder::new(test_sql) as QueryBuilder<Postgres>,
-                "SELECT id FROM task WHERE typ = $1::task_type",
+                "SELECT id FROM task WHERE typ = $1",
             ),
             (
                 TaskFilter {
@@ -223,7 +219,7 @@ mod tests {
                     state: Some(model::TaskState::Pending),
                 },
                 QueryBuilder::new(test_sql) as QueryBuilder<Postgres>,
-                "SELECT id FROM task WHERE state = $1::task_state",
+                "SELECT id FROM task WHERE state = $1",
             ),
             (
                 TaskFilter {
@@ -231,7 +227,7 @@ mod tests {
                     state: Some(model::TaskState::Pending),
                 },
                 QueryBuilder::new(test_sql) as QueryBuilder<Postgres>,
-                "SELECT id FROM task WHERE typ = $1::task_type AND state = $2::task_state",
+                "SELECT id FROM task WHERE typ = $1 AND state = $2",
             ),
         ];
 

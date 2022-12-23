@@ -14,8 +14,7 @@ pub fn paginate(pagination: Pagination) -> (usize, usize, usize) {
     let per_page = pagination
         .per_page
         .unwrap_or(DEFAULT_PER_PAGE)
-        .max(1)
-        .min(MAX_PER_PAGE);
+        .clamp(1, MAX_PER_PAGE);
     let offset = (page.max(1) - 1) * per_page;
     (per_page, offset, page)
 }
