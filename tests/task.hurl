@@ -76,3 +76,8 @@ HTTP/* 202
 
 [Asserts]
 jsonpath "$.task_id" exists
+
+## get task by id
+GET http://0.0.0.0:8000/task/00a0a0aa-a0aa-00aa-0000-0000a000a000
+
+HTTP/* 404

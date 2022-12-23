@@ -33,6 +33,13 @@ pub struct Task {
     pub not_before: Option<DateTime<Utc>>,
 }
 
+#[derive(sqlx::FromRow, Serialize, Deserialize, Debug)]
+pub struct TaskSummary {
+    pub id: Uuid,
+    pub typ: TaskType,
+    pub state: TaskState,
+}
+
 #[derive(Serialize)]
 pub struct CreatedTask {
     pub id: Uuid,

@@ -1,4 +1,8 @@
-use axum::{extract::Query, http::StatusCode, Extension, Json};
+use axum::{
+    extract::{Path, Query},
+    http::StatusCode,
+    Extension, Json,
+};
 use chrono::{DateTime, Utc};
 use common::{
     db::DB,
@@ -7,11 +11,39 @@ use common::{
 };
 use serde::{Deserialize, Serialize};
 use sqlx::{Postgres, QueryBuilder};
-
 use ulid::Ulid;
 use uuid::Uuid;
 
 pub mod model;
+
+pub async fn get_task(
+    Extension(db): Extension<DB>,
+    Path(id): Path<Uuid>,
+) -> JsonResult<model::Task> {
+    let task = sqlx::query_as!(
+        model::Task,
+        r#"
+        SELECT
+            id,
+            typ as "typ: model::TaskType",
+            state as "state: model::TaskState",
+            created_at,
+            deleted_at,
+            not_before
+        FROM task
+        WHERE id = $1::uuid
+        "#,
+        id,
+    )
+    .fetch_optional(&db)
+    .await?;
+
+    if let Some(t) = task {
+        Ok(Json(t))
+    } else {
+        Err(Error::NotFound(id.to_string()))
+    }
+}
 
 #[derive(sqlx::Type, Deserialize)]
 pub struct TaskFilter {
@@ -21,7 +53,7 @@ pub struct TaskFilter {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ListTasksResp {
-    pub tasks: Vec<model::Task>,
+    pub tasks: Vec<model::TaskSummary>,
     pub page: usize,
     pub per_page: usize,
 }
@@ -37,10 +69,7 @@ pub async fn list_tasks(
         SELECT
             id,
             typ,
-            state,
-            created_at,
-            deleted_at,
-            not_before
+            state
         FROM task
         "#,
     );
@@ -52,8 +81,7 @@ pub async fn list_tasks(
         .push(" OFFSET ")
         .push_bind(offset as i64);
     let rows = query
-        .build_query_as::<model::Task>()
-        //let rows = sqlx::query_as::<_, model::Task>(query.sql())
+        .build_query_as::<model::TaskSummary>()
         .fetch_all(&db)
         .await?;
 
@@ -82,6 +110,9 @@ pub async fn create_task(
     Json(body): Json<CreateTaskReq>,
 ) -> Result<(StatusCode, Json<CreateTaskResp>), Error> {
     let id: Uuid = Ulid::new().into();
+
+    tracing::info!("creating task {:#?} ...", &body.task_type);
+
     let task = sqlx::query_as!(
         model::CreatedTask,
         r#"
@@ -105,6 +136,8 @@ pub async fn create_task(
     )
     .fetch_one(&db)
     .await?;
+
+    tracing::info!("created task {}", &task.id);
 
     let resp = CreateTaskResp {
         task_id: task.id,
