@@ -45,17 +45,12 @@ pub async fn get_task(
     }
 }
 
-#[derive(Serialize)]
-pub struct DeleteTaskResp {
-    id: Uuid,
-    state: model::TaskState,
-}
 pub async fn delete_task(
     Extension(db): Extension<DB>,
     Path(id): Path<Uuid>,
-) -> JsonResult<DeleteTaskResp> {
+) -> JsonResult<model::TaskSnapshot> {
     let task = sqlx::query_as!(
-        DeleteTaskResp,
+        model::TaskSnapshot,
         r#"
         UPDATE task
         SET deleted_at = now(), state = 'deleted'
@@ -130,22 +125,16 @@ pub struct CreateTaskReq {
     pub not_before: Option<DateTime<Utc>>,
 }
 
-#[derive(Serialize)]
-pub struct CreateTaskResp {
-    task_id: Uuid,
-    task_state: model::TaskState,
-}
-
 pub async fn create_task(
     Extension(db): Extension<DB>,
     Json(body): Json<CreateTaskReq>,
-) -> Result<(StatusCode, Json<CreateTaskResp>), Error> {
+) -> Result<(StatusCode, Json<model::TaskSnapshot>), Error> {
     let id: Uuid = Ulid::new().into();
 
     tracing::info!("creating task {:#?} ...", &body.task_type);
 
     let task = sqlx::query_as!(
-        model::CreatedTask,
+        model::TaskSnapshot,
         r#"
         INSERT INTO task (
             id,
@@ -170,11 +159,7 @@ pub async fn create_task(
 
     tracing::info!("created task {}", &task.id);
 
-    let resp = CreateTaskResp {
-        task_id: task.id,
-        task_state: task.state,
-    };
-    Ok((StatusCode::ACCEPTED, Json(resp)))
+    Ok((StatusCode::ACCEPTED, Json(task)))
 }
 
 impl TaskFilter {

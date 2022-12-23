@@ -8,10 +8,10 @@ POST http://0.0.0.0:8000/task/create
 HTTP/* 202
 
 [Asserts]
-jsonpath "$.task_id" exists
+jsonpath "$.id" exists
 
 [Captures]
-new_b_task_id: jsonpath "$.task_id"
+new_b_task_id: jsonpath "$.id"
 
 ## create postponed task
 POST http://0.0.0.0:8000/task/create
@@ -23,7 +23,7 @@ POST http://0.0.0.0:8000/task/create
 HTTP/* 202
 
 [Asserts]
-jsonpath "$.task_id" exists
+jsonpath "$.id" exists
 
 
 # /task/list

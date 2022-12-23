@@ -41,7 +41,7 @@ pub struct TaskSummary {
 }
 
 #[derive(Serialize)]
-pub struct CreatedTask {
+pub struct TaskSnapshot {
     pub id: Uuid,
     pub state: TaskState,
 }
