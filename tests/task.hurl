@@ -25,6 +25,9 @@ HTTP/* 202
 [Asserts]
 jsonpath "$.id" exists
 
+[Captures]
+new_a_task_id: jsonpath "$.id"
+
 
 # /task/list
 ## list tasks
@@ -35,6 +38,7 @@ HTTP/* 200
 [Asserts]
 jsonpath "$.tasks" isCollection
 jsonpath "$.tasks[*].id" includes {{new_b_task_id}}
+jsonpath "$.tasks[*].id" includes {{new_a_task_id}}
 jsonpath "$.page" == 1
 jsonpath "$.per_page" isInteger
 
@@ -69,13 +73,28 @@ GET http://0.0.0.0:8000/task/list?typ=type_a
 
 HTTP/* 200
 
+[Asserts]
+jsonpath "$.tasks" isCollection
+jsonpath "$.tasks[*].id" not includes {{new_b_task_id}}
+jsonpath "$.tasks[*].id" includes {{new_a_task_id}}
+
 GET http://0.0.0.0:8000/task/list?typ=type_b
 
 HTTP/* 200
 
+[Asserts]
+jsonpath "$.tasks" isCollection
+jsonpath "$.tasks[*].id" includes {{new_b_task_id}}
+jsonpath "$.tasks[*].id" not includes {{new_a_task_id}}
+
 GET http://0.0.0.0:8000/task/list?typ=type_c
 
 HTTP/* 200
+
+[Asserts]
+jsonpath "$.tasks" isCollection
+jsonpath "$.tasks[*].id" not includes {{new_b_task_id}}
+jsonpath "$.tasks[*].id" not includes {{new_a_task_id}}
 
 GET http://0.0.0.0:8000/task/list?typ=type_c&state=deleted
 
