@@ -91,3 +91,20 @@ HTTP/* 200
 GET http://0.0.0.0:8000/task/00a0a0aa-a0aa-00aa-0000-0000a000a000
 
 HTTP/* 404
+
+## delete task by id
+DELETE http://0.0.0.0:8000/task/{{new_b_task_id}}
+
+HTTP/* 200
+
+[Asserts]
+jsonpath "$.id" exists
+jsonpath "$.state" exists
+
+DELETE http://0.0.0.0:8000/task/{{new_b_task_id}}
+
+HTTP/* 404
+
+GET http://0.0.0.0:8000/task/00a0a0aa-a0aa-00aa-0000-0000a000a000
+
+HTTP/* 404

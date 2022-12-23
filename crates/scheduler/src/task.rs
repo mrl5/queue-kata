@@ -45,6 +45,37 @@ pub async fn get_task(
     }
 }
 
+#[derive(Serialize)]
+pub struct DeleteTaskResp {
+    id: Uuid,
+    state: model::TaskState,
+}
+pub async fn delete_task(
+    Extension(db): Extension<DB>,
+    Path(id): Path<Uuid>,
+) -> JsonResult<DeleteTaskResp> {
+    let task = sqlx::query_as!(
+        DeleteTaskResp,
+        r#"
+        UPDATE task
+        SET deleted_at = now(), state = 'deleted'
+        WHERE id = $1::uuid AND state != 'deleted'
+        RETURNING
+            id,
+            state as "state: model::TaskState"
+        "#,
+        id,
+    )
+    .fetch_optional(&db)
+    .await?;
+
+    if let Some(t) = task {
+        Ok(Json(t))
+    } else {
+        Err(Error::NotFound(id.to_string()))
+    }
+}
+
 #[derive(sqlx::Type, Deserialize)]
 pub struct TaskFilter {
     pub typ: Option<model::TaskType>,
