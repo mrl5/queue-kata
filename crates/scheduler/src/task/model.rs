@@ -19,9 +19,10 @@ pub enum TaskType {
 #[serde(rename_all = "snake_case")]
 pub enum TaskState {
     Pending,
-    Running,
-    Finished,
     Deleted,
+    Running,
+    Failed,
+    Done,
 }
 
 #[derive(sqlx::FromRow, Serialize, Deserialize, Debug)]

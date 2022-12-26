@@ -1,4 +1,5 @@
 DOCKER_COMPOSE := "docker-compose"
+TMRW := `date -u -Iseconds -d"+1days"`
 
 set dotenv-load
 set export
@@ -28,7 +29,7 @@ test-unit:
     cargo test
 
 test-api:
-    hurl --test ./tests/*.hurl
+    hurl --variable tomorrow={{TMRW}} --test ./tests/*.hurl
 
 lint: fmt
     cargo clippy --fix --allow-staged
