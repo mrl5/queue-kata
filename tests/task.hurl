@@ -64,18 +64,28 @@ HTTP/* 200
 
 [Asserts]
 jsonpath "$.tasks" isCollection
-jsonpath "$.page" == 1
 jsonpath "$.per_page" isInteger
 
 ## paginate tasks
-GET http://0.0.0.0:8000/task/list?page=2&per_page=3
+GET http://0.0.0.0:8000/task/list?per_page=2
 
 HTTP/* 200
 
 [Asserts]
-jsonpath "$.tasks[3]" not exists
-jsonpath "$.page" == 2
-jsonpath "$.per_page" == 3
+jsonpath "$.tasks[2]" not exists
+jsonpath "$.per_page" == 2
+jsonpath "$.anchor" exists
+
+[Captures]
+anchor: jsonpath "$.anchor"
+
+GET http://0.0.0.0:8000/task/list?per_page=2&anchor={{anchor}}
+
+HTTP/* 200
+
+[Asserts]
+jsonpath "$.tasks[2]" not exists
+jsonpath "$.per_page" == 2
 
 ## filter tasks
 

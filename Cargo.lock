@@ -193,6 +193,7 @@ dependencies = [
  "sqlx",
  "thiserror",
  "tracing",
+ "uuid",
 ]
 
 [[package]]

@@ -80,7 +80,7 @@ pub struct TaskFilter {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ListTasksResp {
     pub tasks: Vec<model::TaskSummary>,
-    pub page: usize,
+    pub anchor: Option<Uuid>,
     pub per_page: usize,
 }
 
@@ -89,7 +89,7 @@ pub async fn list_tasks(
     Query(pagination): Query<Pagination>,
     Query(task_filter): Query<TaskFilter>,
 ) -> JsonResult<ListTasksResp> {
-    let (per_page, offset, page) = paginate(pagination);
+    let (per_page, anchor) = paginate(pagination);
     let mut query: QueryBuilder<Postgres> = QueryBuilder::new(
         r#"
         SELECT
@@ -99,21 +99,26 @@ pub async fn list_tasks(
         FROM task_state_materialized
         "#,
     );
-    query = task_filter.append_query_with_fragment(query);
+    query = task_filter.append_query_with_fragment(query, anchor);
     query
         .push(" ORDER BY id desc")
         .push(" LIMIT ")
-        .push_bind(per_page as i64)
-        .push(" OFFSET ")
-        .push_bind(offset as i64);
+        .push_bind(per_page as i64);
     let rows = query
         .build_query_as::<model::TaskSummary>()
         .fetch_all(&db)
         .await?;
 
+    let mut new_anchor = None;
+    if rows.len() >= per_page {
+        if let Some(last_row) = rows.last() {
+            new_anchor = Some(last_row.id);
+        }
+    }
+
     let resp = ListTasksResp {
         tasks: rows,
-        page,
+        anchor: new_anchor,
         per_page,
     };
     Ok(Json(resp))
@@ -164,23 +169,26 @@ impl TaskFilter {
     pub fn append_query_with_fragment(
         self,
         mut query: QueryBuilder<Postgres>,
+        anchor: Option<Uuid>,
     ) -> QueryBuilder<Postgres> {
-        if self.typ.is_none() && self.state.is_none() {
+        if anchor.is_none() && self.typ.is_none() && self.state.is_none() {
             return query;
-        } else if self.typ.is_none() && self.state.is_some() {
-            query
-                .push(" WHERE state = ")
-                .push_bind(self.state.unwrap().to_string());
-        } else if self.typ.is_some() && self.state.is_none() {
-            query
-                .push(" WHERE typ = ")
-                .push_bind(self.typ.unwrap().to_string());
-        } else if self.typ.is_some() && self.state.is_some() {
-            query
-                .push(" WHERE typ = ")
-                .push_bind(self.typ.unwrap().to_string())
-                .push(" AND state = ")
-                .push_bind(self.state.unwrap().to_string());
+        } else {
+            query.push(" WHERE ");
+            let mut separated = query.separated(" AND ");
+            if let Some(a) = anchor {
+                separated.push("id < ").push_bind_unseparated(a);
+            }
+            if let Some(t) = self.typ {
+                separated
+                    .push("typ = ")
+                    .push_bind_unseparated(t.to_string());
+            }
+            if let Some(s) = self.state {
+                separated
+                    .push("state = ")
+                    .push_bind_unseparated(s.to_string());
+            }
         }
 
         query
@@ -194,8 +202,10 @@ mod tests {
     #[test]
     fn it_should_serialize_into_where_sql_fragment() {
         let test_sql = "SELECT id FROM task";
+        let anchor: Uuid = Ulid::new().into();
         let test_cases = vec![
             (
+                None,
                 TaskFilter {
                     typ: None,
                     state: None,
@@ -204,6 +214,7 @@ mod tests {
                 "SELECT id FROM task",
             ),
             (
+                None,
                 TaskFilter {
                     typ: Some(model::TaskType::TypeA),
                     state: None,
@@ -212,6 +223,7 @@ mod tests {
                 "SELECT id FROM task WHERE typ = $1",
             ),
             (
+                None,
                 TaskFilter {
                     typ: None,
                     state: Some(model::TaskState::Pending),
@@ -220,6 +232,7 @@ mod tests {
                 "SELECT id FROM task WHERE state = $1",
             ),
             (
+                None,
                 TaskFilter {
                     typ: Some(model::TaskType::TypeA),
                     state: Some(model::TaskState::Pending),
@@ -227,10 +240,46 @@ mod tests {
                 QueryBuilder::new(test_sql) as QueryBuilder<Postgres>,
                 "SELECT id FROM task WHERE typ = $1 AND state = $2",
             ),
+            (
+                Some(anchor),
+                TaskFilter {
+                    typ: None,
+                    state: None,
+                },
+                QueryBuilder::new(test_sql) as QueryBuilder<Postgres>,
+                "SELECT id FROM task WHERE id < $1",
+            ),
+            (
+                Some(anchor),
+                TaskFilter {
+                    typ: Some(model::TaskType::TypeA),
+                    state: None,
+                },
+                QueryBuilder::new(test_sql) as QueryBuilder<Postgres>,
+                "SELECT id FROM task WHERE id < $1 AND typ = $2",
+            ),
+            (
+                Some(anchor),
+                TaskFilter {
+                    typ: None,
+                    state: Some(model::TaskState::Pending),
+                },
+                QueryBuilder::new(test_sql) as QueryBuilder<Postgres>,
+                "SELECT id FROM task WHERE id < $1 AND state = $2",
+            ),
+            (
+                Some(anchor),
+                TaskFilter {
+                    typ: Some(model::TaskType::TypeA),
+                    state: Some(model::TaskState::Pending),
+                },
+                QueryBuilder::new(test_sql) as QueryBuilder<Postgres>,
+                "SELECT id FROM task WHERE id < $1 AND typ = $2 AND state = $3",
+            ),
         ];
 
-        for (input, query, expected) in test_cases {
-            let result = input.append_query_with_fragment(query);
+        for (anchor, filter, query, expected) in test_cases {
+            let result = filter.append_query_with_fragment(query, anchor);
             assert_eq!(result.sql(), expected);
         }
     }
