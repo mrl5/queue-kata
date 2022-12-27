@@ -64,9 +64,6 @@ HTTP/* 200
 
 [Asserts]
 jsonpath "$.tasks" isCollection
-jsonpath "$.tasks[*].id" includes {{new_c_task_id}}
-jsonpath "$.tasks[*].id" includes {{new_b_task_id}}
-jsonpath "$.tasks[*].id" includes {{new_a_task_id}}
 jsonpath "$.page" == 1
 jsonpath "$.per_page" isInteger
 
@@ -89,6 +86,13 @@ HTTP/* 200
 [Asserts]
 jsonpath "$.tasks" isCollection
 
+GET http://0.0.0.0:8000/task/list?state=deferred
+
+HTTP/* 200
+
+[Asserts]
+jsonpath "$.tasks" isCollection
+
 GET http://0.0.0.0:8000/task/list?state=deleted
 
 HTTP/* 200
@@ -96,7 +100,7 @@ HTTP/* 200
 [Asserts]
 jsonpath "$.tasks" isCollection
 
-GET http://0.0.0.0:8000/task/list?state=running
+GET http://0.0.0.0:8000/task/list?state=processing
 
 HTTP/* 200
 
@@ -123,9 +127,6 @@ HTTP/* 200
 
 [Asserts]
 jsonpath "$.tasks" isCollection
-jsonpath "$.tasks[*].id" not includes {{new_c_task_id}}
-jsonpath "$.tasks[*].id" not includes {{new_b_task_id}}
-jsonpath "$.tasks[*].id" includes {{new_a_task_id}}
 
 GET http://0.0.0.0:8000/task/list?typ=type_b
 
@@ -133,9 +134,6 @@ HTTP/* 200
 
 [Asserts]
 jsonpath "$.tasks" isCollection
-jsonpath "$.tasks[*].id" not includes {{new_c_task_id}}
-jsonpath "$.tasks[*].id" includes {{new_b_task_id}}
-jsonpath "$.tasks[*].id" not includes {{new_a_task_id}}
 
 GET http://0.0.0.0:8000/task/list?typ=type_c
 
@@ -143,9 +141,6 @@ HTTP/* 200
 
 [Asserts]
 jsonpath "$.tasks" isCollection
-jsonpath "$.tasks[*].id" includes {{new_c_task_id}}
-jsonpath "$.tasks[*].id" not includes {{new_b_task_id}}
-jsonpath "$.tasks[*].id" not includes {{new_a_task_id}}
 
 GET http://0.0.0.0:8000/task/list?typ=type_c&state=deleted
 

@@ -1,6 +1,6 @@
 {
   "db": "PostgreSQL",
-  "95f5e9eafd795f54079f700fdba49d8b7c4a792d6d3ada532855ebd3aab986be": {
+  "22905cf4dc3a7fedeff8608b08574a029ad003464b519efe591df82713e9c72c": {
     "describe": {
       "columns": [
         {
@@ -24,21 +24,21 @@
           "type_info": "Timestamptz"
         },
         {
-          "name": "deleted_at",
+          "name": "not_before",
           "ordinal": 4,
           "type_info": "Timestamptz"
         },
         {
-          "name": "not_before",
+          "name": "inactive_since",
           "ordinal": 5,
           "type_info": "Timestamptz"
         }
       ],
       "nullable": [
-        false,
-        false,
-        false,
-        false,
+        true,
+        true,
+        true,
+        true,
         true,
         true
       ],
@@ -48,24 +48,18 @@
         ]
       }
     },
-    "query": "\n        SELECT\n            id,\n            typ,\n            state,\n            created_at,\n            deleted_at,\n            not_before\n        FROM task\n        WHERE id = $1::uuid\n        "
+    "query": "\n        SELECT\n            id,\n            typ,\n            state,\n            created_at,\n            not_before,\n            inactive_since\n        FROM task_state_view\n        WHERE id = $1::uuid\n        "
   },
-  "ac52bb32fb831c79656774831be3b39ca73146b48eb7003a2825be0cad7836dc": {
+  "472a19ec5ea2cc90c48bbb3b68bec3363cc5d1190dbcb02a60a767c0b2d72b2a": {
     "describe": {
       "columns": [
         {
           "name": "id",
           "ordinal": 0,
           "type_info": "Uuid"
-        },
-        {
-          "name": "state",
-          "ordinal": 1,
-          "type_info": "Text"
         }
       ],
       "nullable": [
-        false,
         false
       ],
       "parameters": {
@@ -76,9 +70,9 @@
         ]
       }
     },
-    "query": "\n        INSERT INTO task (\n            id,\n            typ,\n            not_before\n        )\n        VALUES (\n            $1,\n            $2,\n            $3\n        )\n        RETURNING\n            id,\n            state\n        "
+    "query": "\n        INSERT INTO task (\n            id,\n            typ,\n            not_before\n        )\n        VALUES (\n            $1,\n            $2,\n            $3\n        )\n        RETURNING id\n        "
   },
-  "d566e70c9c011779a796c56c6be2785b95b0154642ea5b77a743a7ab17f82fa8": {
+  "6cccd3c79366ea8a8f4faadd6f32309ed7c2b55688fd491bd0f5855b2ad3ac5e": {
     "describe": {
       "columns": [
         {
@@ -94,7 +88,7 @@
       ],
       "nullable": [
         false,
-        false
+        true
       ],
       "parameters": {
         "Left": [
@@ -102,6 +96,6 @@
         ]
       }
     },
-    "query": "\n        UPDATE task\n        SET deleted_at = now(), state = 'deleted'\n        WHERE id = $1::uuid AND state != 'deleted'\n        RETURNING\n            id,\n            state\n        "
+    "query": "\n        UPDATE task\n        SET inactive_since = now(), state = 'deleted'\n        WHERE id = $1::uuid AND state != 'deleted'\n        RETURNING\n            id,\n            state\n        "
   }
 }

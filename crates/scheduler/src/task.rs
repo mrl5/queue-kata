@@ -28,9 +28,9 @@ pub async fn get_task(
             typ,
             state,
             created_at,
-            deleted_at,
-            not_before
-        FROM task
+            not_before,
+            inactive_since
+        FROM task_state_view
         WHERE id = $1::uuid
         "#,
         id,
@@ -53,8 +53,8 @@ pub async fn delete_task(
         model::TaskSnapshot,
         r#"
         UPDATE task
-        SET deleted_at = now(), state = 'deleted'
-        WHERE id = $1::uuid AND state != 'deleted'
+        SET inactive_since = now(), state = 'deleted'
+        WHERE id = $1::uuid AND state IS NULL
         RETURNING
             id,
             state
@@ -96,7 +96,7 @@ pub async fn list_tasks(
             id,
             typ,
             state
-        FROM task
+        FROM task_state_materialized
         "#,
     );
     query = task_filter.append_query_with_fragment(query);
@@ -128,13 +128,13 @@ pub struct CreateTaskReq {
 pub async fn create_task(
     Extension(db): Extension<DB>,
     Json(body): Json<CreateTaskReq>,
-) -> Result<(StatusCode, Json<model::TaskSnapshot>), Error> {
+) -> Result<(StatusCode, Json<model::TaskId>), Error> {
     let id: Uuid = Ulid::new().into();
 
     tracing::info!("creating task {:#?} ...", &body.task_type);
 
     let task = sqlx::query_as!(
-        model::TaskSnapshot,
+        model::TaskId,
         r#"
         INSERT INTO task (
             id,
@@ -146,9 +146,7 @@ pub async fn create_task(
             $2,
             $3
         )
-        RETURNING
-            id,
-            state
+        RETURNING id
         "#,
         id,
         body.task_type.to_string(),

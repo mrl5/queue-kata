@@ -18,34 +18,41 @@ pub enum TaskType {
 #[strum(serialize_all = "snake_case")]
 #[serde(rename_all = "snake_case")]
 pub enum TaskState {
+    Created,
     Pending,
+    Deferred,
     Deleted,
-    Running,
+    Processing,
     Failed,
     Done,
 }
 
 #[derive(sqlx::FromRow, Serialize, Deserialize, Debug)]
 pub struct Task {
-    pub id: Uuid,
-    pub typ: String,
-    pub state: String,
-    pub created_at: DateTime<Utc>,
-    pub deleted_at: Option<DateTime<Utc>>,
+    pub id: Option<Uuid>,
+    pub typ: Option<String>,
+    pub state: Option<String>,
+    pub created_at: Option<DateTime<Utc>>,
     pub not_before: Option<DateTime<Utc>>,
+    pub inactive_since: Option<DateTime<Utc>>,
 }
 
 #[derive(sqlx::FromRow, Serialize, Deserialize, Debug)]
 pub struct TaskSummary {
     pub id: Uuid,
     pub typ: String,
-    pub state: String,
+    pub state: Option<String>,
 }
 
 #[derive(Serialize)]
 pub struct TaskSnapshot {
     pub id: Uuid,
-    pub state: String,
+    pub state: Option<String>,
+}
+
+#[derive(Serialize)]
+pub struct TaskId {
+    pub id: Uuid,
 }
 
 impl fmt::Display for Task {
