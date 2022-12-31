@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   db:
-    image: postgres:14
+    image: postgres:15
     restart: unless-stopped
     volumes:
       - db_data:/var/lib/postgresql/data
@@ -10,7 +10,7 @@ services:
       - 5432:5432
     environment:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: mrl5-queue-kata
+      POSTGRES_DB: ${DB_NAME}
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
@@ -24,7 +24,7 @@ services:
     ports:
       - 8000:8000
     environment:
-      - DATABASE_URL=postgres://postgres:${DB_PASSWORD}@db/mrl5-queue-kata?sslmode=disable
+      - DATABASE_URL=${DATABASE_URL}
     depends_on:
       db:
         condition: service_healthy

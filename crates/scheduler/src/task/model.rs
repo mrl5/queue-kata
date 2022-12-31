@@ -46,13 +46,13 @@ pub struct TaskSummary {
 
 #[derive(Serialize)]
 pub struct TaskSnapshot {
-    pub id: Uuid,
+    pub id: Option<Uuid>,
     pub state: Option<String>,
 }
 
 #[derive(Serialize)]
 pub struct TaskId {
-    pub id: Uuid,
+    pub id: Option<Uuid>,
 }
 
 impl fmt::Display for Task {

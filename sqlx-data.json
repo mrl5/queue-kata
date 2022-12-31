@@ -1,6 +1,54 @@
 {
   "db": "PostgreSQL",
-  "22905cf4dc3a7fedeff8608b08574a029ad003464b519efe591df82713e9c72c": {
+  "ba29160bfe2279659b6797343e3019ba2f7fe3d848ca1ca64859a6f4173754df": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "state",
+          "ordinal": 1,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        true,
+        true
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "\n        UPDATE scheduler.task\n        SET inactive_since = now(), state = 'deleted'\n        WHERE id = $1::uuid AND state IS NULL\n        RETURNING\n            id,\n            state\n        "
+  },
+  "c417ad3624b00a9f5ccfb91a348ee50f13b7832637f889395ed13d703e00e9c9": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        }
+      ],
+      "nullable": [
+        true
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Text",
+          "Timestamptz"
+        ]
+      }
+    },
+    "query": "\n        INSERT INTO scheduler.task (\n            id,\n            typ,\n            not_before\n        )\n        VALUES (\n            $1,\n            $2,\n            $3\n        )\n        RETURNING id\n        "
+  },
+  "e0e820c5dafc9ecb3d1986bfc75e8478e48f559d855ca3688ebc4603ace368ec": {
     "describe": {
       "columns": [
         {
@@ -48,54 +96,6 @@
         ]
       }
     },
-    "query": "\n        SELECT\n            id,\n            typ,\n            state,\n            created_at,\n            not_before,\n            inactive_since\n        FROM task_state_view\n        WHERE id = $1::uuid\n        "
-  },
-  "472a19ec5ea2cc90c48bbb3b68bec3363cc5d1190dbcb02a60a767c0b2d72b2a": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Uuid"
-        }
-      ],
-      "nullable": [
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Uuid",
-          "Text",
-          "Timestamptz"
-        ]
-      }
-    },
-    "query": "\n        INSERT INTO task (\n            id,\n            typ,\n            not_before\n        )\n        VALUES (\n            $1,\n            $2,\n            $3\n        )\n        RETURNING id\n        "
-  },
-  "6cccd3c79366ea8a8f4faadd6f32309ed7c2b55688fd491bd0f5855b2ad3ac5e": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "state",
-          "ordinal": 1,
-          "type_info": "Text"
-        }
-      ],
-      "nullable": [
-        false,
-        true
-      ],
-      "parameters": {
-        "Left": [
-          "Uuid"
-        ]
-      }
-    },
-    "query": "\n        UPDATE task\n        SET inactive_since = now(), state = 'deleted'\n        WHERE id = $1::uuid AND state != 'deleted'\n        RETURNING\n            id,\n            state\n        "
+    "query": "\n        SELECT\n            id,\n            typ,\n            state,\n            created_at,\n            not_before,\n            inactive_since\n        FROM scheduler.task_state\n        WHERE id = $1::uuid\n        "
   }
 }

@@ -1172,6 +1172,7 @@ dependencies = [
  "hyper",
  "scheduler",
  "serde",
+ "sqlx",
  "tokio",
  "tower",
  "tower-http",

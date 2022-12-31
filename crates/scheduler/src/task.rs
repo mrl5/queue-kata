@@ -30,7 +30,7 @@ pub async fn get_task(
             created_at,
             not_before,
             inactive_since
-        FROM task_state_view
+        FROM scheduler.task_state
         WHERE id = $1::uuid
         "#,
         id,
@@ -52,7 +52,7 @@ pub async fn delete_task(
     let task = sqlx::query_as!(
         model::TaskSnapshot,
         r#"
-        UPDATE task
+        UPDATE scheduler.task
         SET inactive_since = now(), state = 'deleted'
         WHERE id = $1::uuid AND state IS NULL
         RETURNING
@@ -96,7 +96,7 @@ pub async fn list_tasks(
             id,
             typ,
             state
-        FROM task_state_materialized
+        FROM scheduler.task_state_cached
         "#,
     );
     query = task_filter.append_query_with_fragment(query, anchor);
@@ -141,7 +141,7 @@ pub async fn create_task(
     let task = sqlx::query_as!(
         model::TaskId,
         r#"
-        INSERT INTO task (
+        INSERT INTO scheduler.task (
             id,
             typ,
             not_before
@@ -160,7 +160,11 @@ pub async fn create_task(
     .fetch_one(&db)
     .await?;
 
-    tracing::info!("created task {}", &task.id);
+    if let Some(id) = task.id {
+        tracing::info!("created task {}", id);
+    } else {
+        tracing::error!("unicorn None of task.id");
+    }
 
     Ok((StatusCode::ACCEPTED, Json(task)))
 }
