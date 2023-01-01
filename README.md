@@ -20,6 +20,13 @@ cargo install just
 just dev-tools
 ```
 
+### setup db on first run
+```console
+just db-only
+just db-bootstrap
+just db-migrate
+```
+
 ### locally
 
 ```console
