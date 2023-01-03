@@ -17,6 +17,8 @@ pub enum Error {
     DatabaseMigration(#[from] MigrateError),
     #[error("Bad request: {0}")]
     BadRequest(String),
+    #[error("Forbidden: {0}")]
+    Forbidden(String),
     #[error("Not found: {0}")]
     NotFound(String),
     #[error(transparent)]
@@ -45,6 +47,7 @@ impl IntoResponse for Error {
             message: self.to_string(),
         };
         let status = match self {
+            Self::Forbidden(_) => StatusCode::FORBIDDEN,
             Self::NotFound(_) => StatusCode::NOT_FOUND,
             Self::SqlErr(_) | Self::BadRequest(_) => StatusCode::BAD_REQUEST,
             _ => StatusCode::INTERNAL_SERVER_ERROR,

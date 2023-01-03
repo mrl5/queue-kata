@@ -49,17 +49,31 @@ pub async fn delete_task(
     Extension(db): Extension<DB>,
     Path(id): Path<Uuid>,
 ) -> JsonResult<model::TaskSnapshot> {
+    let forbidden_states = vec![model::TaskState::Processing.to_string()];
     let task = sqlx::query_as!(
         model::TaskSnapshot,
         r#"
-        UPDATE scheduler.task
-        SET inactive_since = now(), state = 'deleted'
-        WHERE id = $1::uuid AND state IS NULL
-        RETURNING
-            id,
-            state
+        WITH deleted_task as (
+            UPDATE scheduler.task
+            SET inactive_since = now(), state = $1
+            FROM (
+                SELECT id as task_id FROM scheduler.task_state
+                WHERE id = $2::uuid
+                    AND state != ANY($3)
+                    AND inactive_since IS NULL
+            ) as t
+            WHERE id = t.task_id
+            RETURNING id, state, inactive_since
+        ) SELECT id, state, inactive_since FROM (
+        SELECT id, state, inactive_since FROM deleted_task
+        UNION ALL
+        SELECT id, state, inactive_since FROM scheduler.task
+        WHERE id = $2::uuid AND state = $1
+        ) t
         "#,
+        model::TaskState::Deleted.to_string(),
         id,
+        &forbidden_states,
     )
     .fetch_optional(&db)
     .await?;
@@ -67,7 +81,18 @@ pub async fn delete_task(
     if let Some(t) = task {
         Ok(Json(t))
     } else {
-        Err(Error::NotFound(id.to_string()))
+        let task = sqlx::query!(
+            r#"
+            SELECT 1 as t FROM scheduler.task WHERE id = $1::uuid
+            "#,
+            id,
+        )
+        .fetch_optional(&db)
+        .await?;
+        if task.is_none() {
+            return Err(Error::NotFound(id.to_string()));
+        }
+        Err(Error::Forbidden(format!("{} can't be deleted anymore", id)))
     }
 }
 

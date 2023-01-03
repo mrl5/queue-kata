@@ -48,6 +48,7 @@ pub struct TaskSummary {
 pub struct TaskSnapshot {
     pub id: Option<Uuid>,
     pub state: Option<String>,
+    pub inactive_since: Option<DateTime<Utc>>,
 }
 
 #[derive(Serialize)]
