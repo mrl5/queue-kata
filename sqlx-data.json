@@ -1,6 +1,26 @@
 {
   "db": "PostgreSQL",
-  "ba29160bfe2279659b6797343e3019ba2f7fe3d848ca1ca64859a6f4173754df": {
+  "325ba3513eeb24d25c249d64603f23afd1d02efe192ce52c1f8ce65e6304b4a0": {
+    "describe": {
+      "columns": [
+        {
+          "name": "t",
+          "ordinal": 0,
+          "type_info": "Int4"
+        }
+      ],
+      "nullable": [
+        null
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "\n            SELECT 1 as t FROM scheduler.task WHERE id = $1::uuid\n            "
+  },
+  "ad8c4945e1f1bb88ece9cd06909174cb5f204864d3318ca9b1974b9c9db0cac5": {
     "describe": {
       "columns": [
         {
@@ -12,19 +32,27 @@
           "name": "state",
           "ordinal": 1,
           "type_info": "Text"
+        },
+        {
+          "name": "inactive_since",
+          "ordinal": 2,
+          "type_info": "Timestamptz"
         }
       ],
       "nullable": [
-        true,
-        true
+        null,
+        null,
+        null
       ],
       "parameters": {
         "Left": [
-          "Uuid"
+          "Text",
+          "Uuid",
+          "TextArray"
         ]
       }
     },
-    "query": "\n        UPDATE scheduler.task\n        SET inactive_since = now(), state = 'deleted'\n        WHERE id = $1::uuid AND state IS NULL\n        RETURNING\n            id,\n            state\n        "
+    "query": "\n        WITH deleted_task as (\n            UPDATE scheduler.task\n            SET inactive_since = now(), state = $1\n            FROM (\n                SELECT id as task_id FROM scheduler.task_state\n                WHERE id = $2::uuid\n                    AND state != ANY($3)\n                    AND inactive_since IS NULL\n            ) as t\n            WHERE id = t.task_id\n            RETURNING id, state, inactive_since\n        ) SELECT id, state, inactive_since FROM (\n        SELECT id, state, inactive_since FROM deleted_task\n        UNION ALL\n        SELECT id, state, inactive_since FROM scheduler.task\n        WHERE id = $2::uuid AND state = $1\n        ) t\n        "
   },
   "c417ad3624b00a9f5ccfb91a348ee50f13b7832637f889395ed13d703e00e9c9": {
     "describe": {
