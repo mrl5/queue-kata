@@ -6,7 +6,7 @@ POST http://0.0.0.0:8000/task/create
   "task_type": "type_c"
 }
 
-HTTP/* 202
+HTTP 202
 
 [Asserts]
 jsonpath "$.id" exists
@@ -19,7 +19,7 @@ POST http://0.0.0.0:8000/task/create
   "task_type": "type_b"
 }
 
-HTTP/* 202
+HTTP 202
 
 [Asserts]
 jsonpath "$.id" exists
@@ -34,7 +34,7 @@ POST http://0.0.0.0:8000/task/create
   "not_before": "{{tomorrow}}"
 }
 
-HTTP/* 202
+HTTP 202
 
 [Asserts]
 jsonpath "$.id" exists
@@ -60,7 +60,7 @@ POST http://0.0.0.0:8000/task/create
 ## list tasks
 GET http://0.0.0.0:8000/task/list
 
-HTTP/* 200
+HTTP 200
 
 [Asserts]
 jsonpath "$.tasks" isCollection
@@ -69,7 +69,7 @@ jsonpath "$.per_page" isInteger
 ## paginate tasks
 GET http://0.0.0.0:8000/task/list?per_page=2
 
-HTTP/* 200
+HTTP 200
 
 [Asserts]
 jsonpath "$.tasks[2]" not exists
@@ -81,7 +81,7 @@ anchor: jsonpath "$.anchor"
 
 GET http://0.0.0.0:8000/task/list?per_page=2&anchor={{anchor}}
 
-HTTP/* 200
+HTTP 200
 
 [Asserts]
 jsonpath "$.tasks[2]" not exists
@@ -91,70 +91,70 @@ jsonpath "$.per_page" == 2
 
 GET http://0.0.0.0:8000/task/list?state=pending
 
-HTTP/* 200
+HTTP 200
 
 [Asserts]
 jsonpath "$.tasks" isCollection
 
 GET http://0.0.0.0:8000/task/list?state=deferred
 
-HTTP/* 200
+HTTP 200
 
 [Asserts]
 jsonpath "$.tasks" isCollection
 
 GET http://0.0.0.0:8000/task/list?state=deleted
 
-HTTP/* 200
+HTTP 200
 
 [Asserts]
 jsonpath "$.tasks" isCollection
 
 GET http://0.0.0.0:8000/task/list?state=processing
 
-HTTP/* 200
+HTTP 200
 
 [Asserts]
 jsonpath "$.tasks" isCollection
 
 GET http://0.0.0.0:8000/task/list?state=failed
 
-HTTP/* 200
+HTTP 200
 
 [Asserts]
 jsonpath "$.tasks" isCollection
 
 GET http://0.0.0.0:8000/task/list?state=done
 
-HTTP/* 200
+HTTP 200
 
 [Asserts]
 jsonpath "$.tasks" isCollection
 
 GET http://0.0.0.0:8000/task/list?typ=type_a
 
-HTTP/* 200
+HTTP 200
 
 [Asserts]
 jsonpath "$.tasks" isCollection
 
 GET http://0.0.0.0:8000/task/list?typ=type_b
 
-HTTP/* 200
+HTTP 200
 
 [Asserts]
 jsonpath "$.tasks" isCollection
 
 GET http://0.0.0.0:8000/task/list?typ=type_c
 
-HTTP/* 200
+HTTP 200
 
 [Asserts]
 jsonpath "$.tasks" isCollection
 
 GET http://0.0.0.0:8000/task/list?typ=type_c&state=deleted
 
-HTTP/* 200
+HTTP 200
 
 [Asserts]
 jsonpath "$.tasks" isCollection
@@ -164,19 +164,19 @@ jsonpath "$.tasks" isCollection
 ## get task by id
 GET http://0.0.0.0:8000/task/{{new_b_task_id}}
 
-HTTP/* 200
+HTTP 200
 
 [Asserts]
 jsonpath "$.id" == {{new_b_task_id}}
 
 GET http://0.0.0.0:8000/task/00a0a0aa-a0aa-00aa-0000-0000a000a000
 
-HTTP/* 404
+HTTP 404
 
 ## delete task by id
 DELETE http://0.0.0.0:8000/task/{{new_b_task_id}}
 
-HTTP/* 200
+HTTP 200
 
 [Asserts]
 jsonpath "$.id" == {{new_b_task_id}}
@@ -188,7 +188,7 @@ b_task_inactive_since: jsonpath "$.inactive_since"
 
 DELETE http://0.0.0.0:8000/task/{{new_b_task_id}}
 
-HTTP/* 200
+HTTP 200
 
 [Asserts]
 jsonpath "$.id" == {{new_b_task_id}}
@@ -197,4 +197,4 @@ jsonpath "$.inactive_since" == {{b_task_inactive_since}}
 
 DELETE http://0.0.0.0:8000/task/00a0a0aa-a0aa-00aa-0000-0000a000a000
 
-HTTP/* 404
+HTTP 404
