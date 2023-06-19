@@ -30,6 +30,7 @@ just db-migrate
 ### locally
 
 ```console
+find . -type l -iname ".env" | xargs rm -v && ln -s -v .env.local .env
 just db-only
 just test-unit
 just local-api
