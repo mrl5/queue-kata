@@ -20,7 +20,7 @@ async fn main() -> anyhow::Result<()> {
 
     let db = db::connect(Some(env!("CARGO_PKG_NAME"))).await?;
     db::migrate(&db).await?;
-    sqlx::query("CALL subpartitions.create_all_partitions_for_now()")
+    sqlx::query("CALL internal.create_all_partitions_for_now('default')")
         .execute(&db)
         .await?;
 
