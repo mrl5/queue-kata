@@ -1,10 +1,6 @@
 -- queue logic views + populating logic
 
--- fixes 'relation "task" does not exist'
--- but on the other hand can introduce a bug in a view
-SELECT set_config('search_path', 'tenant_default,'||current_setting('search_path'), false);
-
-CREATE VIEW tenant_default.task_state AS
+CREATE VIEW task_state AS
     SELECT id, typ, state, created_at, not_before, inactive_since
     FROM task WHERE state IS NOT NULL
 
@@ -33,7 +29,7 @@ CREATE VIEW tenant_default.task_state AS
     WHERE t.state is NULL;
 
 -- notice limit here
-CREATE MATERIALIZED VIEW tenant_default.task_state_cached AS
+CREATE MATERIALIZED VIEW task_state_cached AS
 WITH aggregated AS (
     (SELECT * FROM task_state
     WHERE state != 'created' LIMIT 1000)
@@ -53,12 +49,12 @@ FROM aggregated
 ORDER BY id desc;
 -- something (e.g. cron) should `REFRESH MATERIALIZED VIEW CONCURRENTLY`
 
-CREATE UNIQUE INDEX on tenant_default.task_state_cached (id);
+CREATE UNIQUE INDEX on task_state_cached (id);
 -- GIVEN: Show a list of tasks, filterable by their state and/or task type
-CREATE INDEX on tenant_default.task_state_cached (typ);
-CREATE INDEX on tenant_default.task_state_cached (state);
+CREATE INDEX on task_state_cached (typ);
+CREATE INDEX on task_state_cached (state);
 
-CREATE PROCEDURE internal.populate_queue(tenant text)
+CREATE PROCEDURE populate_queue(tenant text)
 LANGUAGE plpgsql AS $fn$
 BEGIN
 EXECUTE format($$

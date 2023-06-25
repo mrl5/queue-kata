@@ -1,6 +1,6 @@
 -- job table
 
-CREATE TABLE tenant_default.job (
+CREATE TABLE job (
     started_at timestamptz
         NOT NULL
         DEFAULT now(),
@@ -23,6 +23,6 @@ CREATE TABLE tenant_default.job (
     UNIQUE (id, started_at)
 )
 PARTITION BY RANGE (started_at);
-CREATE INDEX ON tenant_default.job (task);
-CREATE INDEX ON tenant_default.job (state);
-CREATE INDEX ON tenant_default.job USING BRIN (started_at);
+CREATE INDEX ON job (task);
+CREATE INDEX ON job (state);
+CREATE INDEX ON job USING BRIN (started_at);

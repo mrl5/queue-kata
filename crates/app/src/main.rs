@@ -20,9 +20,6 @@ async fn main() -> anyhow::Result<()> {
 
     let db = db::connect(Some(env!("CARGO_PKG_NAME"))).await?;
     db::migrate(&db).await?;
-    sqlx::query("CALL internal.create_all_partitions_for_now('default')")
-        .execute(&db)
-        .await?;
 
     let server_f = async {
         let address = SocketAddr::from(([0, 0, 0, 0], port.parse()?));

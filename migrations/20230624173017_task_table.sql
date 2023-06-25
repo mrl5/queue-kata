@@ -1,6 +1,6 @@
 -- task table
 
-CREATE TABLE tenant_default.task (
+CREATE TABLE task (
     -- trick: reduce table size by rearranging columns: https://youtu.be/9_pbEVeMEB4?t=1082
     created_at timestamptz
         NOT NULL
@@ -32,7 +32,7 @@ CREATE TABLE tenant_default.task (
 
     UNIQUE (id, created_at)
 ) PARTITION BY RANGE (created_at);
-CREATE INDEX ON tenant_default.task (id);
-CREATE INDEX ON tenant_default.task USING BRIN (created_at);
-CREATE INDEX ON tenant_default.task (state);
+CREATE INDEX ON task (id);
+CREATE INDEX ON task USING BRIN (created_at);
+CREATE INDEX ON task (state);
 

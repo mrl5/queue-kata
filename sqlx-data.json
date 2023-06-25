@@ -1,26 +1,6 @@
 {
   "db": "PostgreSQL",
-  "325ba3513eeb24d25c249d64603f23afd1d02efe192ce52c1f8ce65e6304b4a0": {
-    "describe": {
-      "columns": [
-        {
-          "name": "t",
-          "ordinal": 0,
-          "type_info": "Int4"
-        }
-      ],
-      "nullable": [
-        null
-      ],
-      "parameters": {
-        "Left": [
-          "Uuid"
-        ]
-      }
-    },
-    "query": "\n            SELECT 1 as t FROM scheduler.task WHERE id = $1::uuid\n            "
-  },
-  "ad8c4945e1f1bb88ece9cd06909174cb5f204864d3318ca9b1974b9c9db0cac5": {
+  "3e602fded2f30da594df19801827cbdf7bfbc6374145fd4b2b7a0dafb29dbd04": {
     "describe": {
       "columns": [
         {
@@ -52,9 +32,9 @@
         ]
       }
     },
-    "query": "\n        WITH deleted_task as (\n            UPDATE scheduler.task\n            SET inactive_since = now(), state = $1\n            FROM (\n                SELECT id as task_id FROM scheduler.task_state\n                WHERE id = $2::uuid\n                    AND state != ANY($3)\n                    AND inactive_since IS NULL\n            ) as t\n            WHERE id = t.task_id\n            RETURNING id, state, inactive_since\n        ) SELECT id, state, inactive_since FROM (\n        SELECT id, state, inactive_since FROM deleted_task\n        UNION ALL\n        SELECT id, state, inactive_since FROM scheduler.task\n        WHERE id = $2::uuid AND state = $1\n        ) t\n        "
+    "query": "\n        WITH deleted_task as (\n            UPDATE task\n            SET inactive_since = now(), state = $1\n            FROM (\n                SELECT id as task_id FROM task_state\n                WHERE id = $2::uuid\n                    AND state != ANY($3)\n                    AND inactive_since IS NULL\n            ) as t\n            WHERE id = t.task_id\n            RETURNING id, state, inactive_since\n        ) SELECT id, state, inactive_since FROM (\n        SELECT id, state, inactive_since FROM deleted_task\n        UNION ALL\n        SELECT id, state, inactive_since FROM task\n        WHERE id = $2::uuid AND state = $1\n        ) t\n        "
   },
-  "c417ad3624b00a9f5ccfb91a348ee50f13b7832637f889395ed13d703e00e9c9": {
+  "472a19ec5ea2cc90c48bbb3b68bec3363cc5d1190dbcb02a60a767c0b2d72b2a": {
     "describe": {
       "columns": [
         {
@@ -64,7 +44,7 @@
         }
       ],
       "nullable": [
-        true
+        false
       ],
       "parameters": {
         "Left": [
@@ -74,9 +54,29 @@
         ]
       }
     },
-    "query": "\n        INSERT INTO scheduler.task (\n            id,\n            typ,\n            not_before\n        )\n        VALUES (\n            $1,\n            $2,\n            $3\n        )\n        RETURNING id\n        "
+    "query": "\n        INSERT INTO task (\n            id,\n            typ,\n            not_before\n        )\n        VALUES (\n            $1,\n            $2,\n            $3\n        )\n        RETURNING id\n        "
   },
-  "e0e820c5dafc9ecb3d1986bfc75e8478e48f559d855ca3688ebc4603ace368ec": {
+  "7502d1407c39ef97c1db8ae30079c83fb397cf101e3e2018e22b836671503343": {
+    "describe": {
+      "columns": [
+        {
+          "name": "t",
+          "ordinal": 0,
+          "type_info": "Int4"
+        }
+      ],
+      "nullable": [
+        null
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "\n            SELECT 1 as t FROM task WHERE id = $1::uuid\n            "
+  },
+  "a4cfc9d1d1d2710b542a2b375633bc7a4e87cef96c3e041c6d35c0306e52ec17": {
     "describe": {
       "columns": [
         {
@@ -124,6 +124,6 @@
         ]
       }
     },
-    "query": "\n        SELECT\n            id,\n            typ,\n            state,\n            created_at,\n            not_before,\n            inactive_since\n        FROM scheduler.task_state\n        WHERE id = $1::uuid\n        "
+    "query": "\n        SELECT\n            id,\n            typ,\n            state,\n            created_at,\n            not_before,\n            inactive_since\n        FROM task_state\n        WHERE id = $1::uuid\n        "
   }
 }
