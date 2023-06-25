@@ -1,6 +1,6 @@
 # scheduler kata
 
-## requirements
+## Requirements
 
 Expose an API that can:
 * Create a task of a specific type and execution time, returning the task's ID
@@ -11,7 +11,7 @@ Expose an API that can:
 * Process each task only once and only at/after their specified execution time.
 * Support running multiple instances of your code in parallel.
 
-## setup db on BEFORE run
+## Setup db BEFORE first run
 
 ### One time bootstrap
 
@@ -26,7 +26,7 @@ just db-only
 2. We have vanilla postgres with empty database for the project. Now let's
    bootstrap `pg_cron`. Run it in 2nd terminal:
 ```console
-just db-bootstrap-cron
+just db-load-pgcron
 ```
 
 3. Container was restarted. You can attach to it in 1st terminal again:
@@ -36,7 +36,7 @@ just db-only
 
 4. Let's continue the bootstrap process in 2nd terminal:
 ```console
-just db-bootstrap-internal
+just db-bootstrap
 ```
 
 ### Per tenant migration
@@ -49,7 +49,7 @@ For more info inspect the content of `.env` (it's symlink to `.env.docker`).
 Then compare it with `.env.local`. Notice the `TENANT` variable
 
 
-## howto dev
+## Howto dev
 
 install dev tools
 
@@ -58,7 +58,7 @@ cargo install just
 just dev-tools
 ```
 
-### locally
+### Locally
 
 ```console
 find . -type l -iname ".env" | xargs rm -v && ln -s -v .env.local .env
@@ -68,21 +68,21 @@ just local-api
 just test-api
 ```
 
-### via docker
+### Via docker
 
 ```console
 just build run
 just test-api
 ```
 
-### database migrations
+### Database migrations
 
-run migrations on db
+Run migrations on db
 ```console
 just db-migrate
 ```
 
-for new migration definition
+For new migration definition
 ```console
 sqlx migrate add <migration name w/o timestamp>
 ```

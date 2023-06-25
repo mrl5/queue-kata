@@ -1,5 +1,4 @@
 -- bootstrap
--- * https://www.cybertec-postgresql.com/en/partition-management-do-you-really-need-a-tool-for-that/
 -- * https://www.crunchydata.com/blog/tentative-smarter-query-optimization-in-postgres-starts-with-pg_stat_statements
 
 CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
@@ -30,7 +29,8 @@ BEGIN
     $$, new_tenant);
 
     EXECUTE format($$
-        ALTER SCHEMA tenant_%s OWNER TO tenant_%s;
+        GRANT SELECT, INSERT, UPDATE, DELETE
+        ON ALL TABLES IN SCHEMA tenant_%s TO tenant_%s;
     $$, new_tenant, new_tenant);
 END
 $x$;

@@ -97,7 +97,7 @@ BEGIN
 END
 $$;
 
-CREATE PROCEDURE internal.create_all_partitions_for_now(tenant text)
+CREATE PROCEDURE internal.create_partitions_for_now(tenant text)
 LANGUAGE plpgsql
 AS $$
 DECLARE tables text[] := array ['task', 'job'];
@@ -111,15 +111,15 @@ BEGIN
 END
 $$;
 
-CREATE PROCEDURE internal.create_all_partitions_for_next_month(tenant text)
+CREATE PROCEDURE internal.create_partitions_for_next_interval(tenant text)
 LANGUAGE plpgsql
 AS $$
 DECLARE tables text[] := array ['task', 'job'];
-DECLARE t text;
+DECLARE tbl text;
 BEGIN
 
-    FOREACH t IN array tables LOOP
-        CALL internal.create_partition_for_next_month(tenant, t);
+    FOREACH tbl IN array tables LOOP
+        CALL internal.create_partition_for_next_month(tenant, tbl);
     END LOOP;
 
 END
