@@ -12,7 +12,7 @@ CREATE TABLE internal.tenant (
         DEFAULT now()
 );
 
-CREATE PROCEDURE internal.create_new_tenant(new_tenant text)
+CREATE PROCEDURE internal.create_new_tenant(schema_owner text, new_tenant text)
 LANGUAGE plpgsql
 AS $x$
 BEGIN
@@ -29,8 +29,12 @@ BEGIN
     $$, new_tenant);
 
     EXECUTE format($$
-        GRANT SELECT, INSERT, UPDATE, DELETE
-        ON ALL TABLES IN SCHEMA tenant_%s TO tenant_%s;
+        GRANT USAGE ON SCHEMA tenant_%s TO tenant_%s;
     $$, new_tenant, new_tenant);
+
+    EXECUTE format($$
+        ALTER DEFAULT PRIVILEGES FOR USER %s IN SCHEMA tenant_%s
+            GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO tenant_%s;
+    $$, schema_owner, new_tenant, new_tenant, new_tenant);
 END
 $x$;

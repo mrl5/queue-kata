@@ -47,7 +47,7 @@ _db-add-new-tenant:
 
     PGPASSWORD=${ADMIN_DB_PASSWORD} psql -h ${SQLX_DB_HOST} -p ${DB_PORT} \
         -U ${ADMIN_DB_USER} -d ${DB_NAME} \
-        -c "CALL internal.create_new_tenant('${TENANT}');"
+        -c "CALL internal.create_new_tenant('${ADMIN_DB_USER}', '${TENANT}');"
 
 db-migrate:
     just --dotenv-path .env.sqlx TENANT=${TENANT} _db-migrate

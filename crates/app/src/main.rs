@@ -19,7 +19,7 @@ async fn main() -> anyhow::Result<()> {
     let port = std::env::var("API_PORT").unwrap_or_else(|_| DEFAULT_PORT.to_owned());
 
     let db = db::connect(Some(env!("CARGO_PKG_NAME"))).await?;
-    db::migrate(&db).await?;
+    // db::migrate(&db).await?;
 
     let server_f = async {
         let address = SocketAddr::from(([0, 0, 0, 0], port.parse()?));
