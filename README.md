@@ -1,5 +1,7 @@
 # scheduler kata
 
+:warning: project was moved to [scheduler-kata repo](https://github.com/mrl5/scheduler-kata) :warning:
+
 ## Requirements
 
 Expose an API that can:
